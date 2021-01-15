@@ -7,8 +7,8 @@ class AffectedByCaseSpider(scrapy.Spider):
     allowed_domains = ['eur-lex.europa.eu']
 
     def start_requests(self):
-        efta_9_91c_csv_file = "./csv/celex-numbers.csv"
-        df = pd.read_csv(efta_9_91c_csv_file, usecols=["acq_recno", "celex_number",
+        csv_file = "./csv/celex-numbers.csv"
+        df = pd.read_csv(csv_file, usecols=["acq_recno", "celex_number",
                                                        "case_status"])  # extract three fields/columns from csv file
         df = df.drop(df[df.celex_number.isnull()].index)  # drop row if field/column 'celex_number' is null
         df = df.drop(
@@ -34,7 +34,7 @@ class AffectedByCaseSpider(scrapy.Spider):
         acq_recno = response.request.meta['acq_recno']  # unique ID from EFTA 360, ex. 318588
 
         pplinked_affected_by_lis = response.xpath(
-            "//div[@id='PPLinked_Contents']/div/dl/dt[contains(.,'Affected by case')]/following-sibling::dd[1]/ul/li")
+            "//div[@id='PPLinked_Contents']/div/dl/dt[contains(.,'Affected by case')]/following-sibling::dd[1]/ul/li")  # xpath to extract li elements under "Affected by case"
 
         for li in pplinked_affected_by_lis:
             affected_text = li.xpath(
