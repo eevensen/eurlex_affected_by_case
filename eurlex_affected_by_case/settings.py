@@ -16,8 +16,9 @@ NEWSPIDER_MODULE = 'eurlex_affected_by_case.spiders'
 
 timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-FEED_URI = './export/' + str(timestamp) + '-' + BOT_NAME + '.csv'
-FEED_FORMAT = 'csv'
+filepath_and_name = './export/' + str(timestamp) + '-' + BOT_NAME + '.csv'
+FEEDS = {filepath_and_name: {'format': 'csv'}}
+
 FEED_EXPORT_FIELDS = [
     'affected_acq_recno',
     'affected_celex_number',
