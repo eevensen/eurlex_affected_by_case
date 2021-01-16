@@ -18,7 +18,7 @@ class AffectedByCaseSpider(scrapy.Spider):
         df = df.drop(df[df.case_status == 6].index)  # drop row if field/column 'case_status' is '6'
         df = df.drop(df[df.case_status == 8].index)  # drop row if field/column 'case_status' is '8'
 
-        base_url = "https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:"  # base url to be concatenated with the celex number.
+        base_url = "https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:"  # base url to be concatenated with the celex number. For example 'https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:32000L0060'
 
         for row in df.iterrows():  # iterate over rows and parse generated urls based on celex numbers
             acq_recno = row[1][0]  # extract field acq_recno from csv row
