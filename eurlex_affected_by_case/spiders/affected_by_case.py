@@ -2,6 +2,7 @@ import scrapy
 import pandas as pd
 from scrapy import Selector
 import requests
+from ..items import EurlexAffectedByCaseItem
 
 
 class AffectedByCaseSpider(scrapy.Spider):
@@ -10,7 +11,7 @@ class AffectedByCaseSpider(scrapy.Spider):
     allowed_domains = []
 
     def start_requests(self):
-        csv_file = "./csv/celex-numbers.csv"
+        csv_file = "https://www.efta.int/sites/default/files/feeds/eea-lex/9_91c_EEA_Lex_3_0_export.csv"
         df = pd.read_csv(csv_file, usecols=["acq_recno", "celex_number",
                                             "case_status"])  # extract three fields/columns from csv file
         df = df.drop(df[df.celex_number.isnull()].index)  # drop row if field/column 'celex_number' is null
@@ -37,17 +38,17 @@ class AffectedByCaseSpider(scrapy.Spider):
         meta = response.request.meta
 
         if response.status != 404:
-            self.parse_body(response.body, response.url, response.request.meta)
+            return self.parse_body(response.body, response.url, response.request.meta)
         else:
-            print("\n" * 2)
-            print('URL: %s' % response.url)
-            print('SPIDER RETURNS 404 - TRYING ALTERNATIVE REQUEST METHOD...')
-            print("\n" * 2)
+            print ("\n" * 2)
+            print ('URL: %s' % response.url)
+            print ('SPIDER RETURNS 404 - TRYING ALTERNATIVE REQUEST METHOD...')
+            print ("\n" * 2)
 
             meta['notify'] = 1
             x = requests.get(response.url)
-            print('STATUS: %s' % x.status_code)
-            self.parse_body(x.content, response.url, meta)
+            print ('STATUS: %s' % x.status_code)
+            return self.parse_body(x.content, response.url, meta)
 
     def parse_body(self, body, url, meta):
         sel = Selector(text=body)
@@ -55,16 +56,19 @@ class AffectedByCaseSpider(scrapy.Spider):
         notfound = 'The requested document does not exist.'
 
         if 'notify' in meta and b'The requested document does not exist.' in body:
-            print("\n" * 2)
-            print(notfound)
-            print(url)
-            print("\n" * 2)
+            print ("\n" * 2)
+            print (notfound)
+            print (url)
+            print ("\n" * 2)
             return
 
         pplinked_affected_by_lis = sel.xpath(
             "//div[@id='PPLinked_Contents']/div/dl/dt[contains(.,'Affected by case')]/following-sibling::dd[1]/ul/li")  # xpath to extract li elements under "Affected by case"
 
-        if len(pplinked_affected_by_lis) is 0:
+        # print ("\n")
+        # print ('Affected Case: %s' % pplinked_affected_by_lis)
+        # print ("\n")
+        if len(pplinked_affected_by_lis) == 0:
             # print ('URL: %s' % url)
             # print ('Affected by case not found on document')
             return
@@ -76,19 +80,14 @@ class AffectedByCaseSpider(scrapy.Spider):
             affected_court_celex = li.xpath(
                 ".//a/text()").get()
 
-            yield {
-                'affected_acq_recno': meta['acq_recno'],
-                'affected_celex_number': meta['celex_number'],
-                'affected_text': affected_text.strip(),
-                'affected_court_celex': affected_court_celex,
-            }
-
             if 'notify' in meta:
-                print("\n" * 2)
-                print('!!!FOUND!!!')
-                yield {
-                    'affected_acq_recno': meta['acq_recno'],
-                    'affected_celex_number': meta['celex_number'],
-                    'affected_text': affected_text.strip(),
-                    'affected_court_celex': affected_court_celex,
-                }
+                print ("\n" * 2)
+                print ('!!!FOUND!!!')
+
+            item = EurlexAffectedByCaseItem()
+            item['affected_acq_recno'] = meta['acq_recno']
+            item['affected_celex_number'] = meta['celex_number']
+            item['affected_text'] = affected_text.strip()
+            item['affected_court_celex'] = affected_court_celex
+
+            yield item

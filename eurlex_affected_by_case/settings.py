@@ -16,7 +16,14 @@ NEWSPIDER_MODULE = 'eurlex_affected_by_case.spiders'
 
 timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-filepath_and_name = './export/' + str(timestamp) + '-' + BOT_NAME + '.csv'
+foldername = 'affected_by_case'
+
+# DO server
+filepath_and_name = '/var/www/html/dump/eurlex/' + foldername + '/' + str(timestamp) + '-' + BOT_NAME + '.csv'
+
+# Macbook pro 16
+# filepath_and_name = './export/' + str(timestamp) + '-' + BOT_NAME + '.csv'
+
 FEEDS = {filepath_and_name: {'format': 'csv'}}
 
 FEED_EXPORT_FIELDS = [
@@ -106,8 +113,6 @@ AUTOTHROTTLE_DEBUG = False
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = [404]
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
-
-
 
 # handle_httpstatus_list = [404]
 RETRY_ENABLED = True
